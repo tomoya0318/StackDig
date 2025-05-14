@@ -1,0 +1,36 @@
+services:
+  app:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: StackDig
+    ports:
+      - "2223:22"
+    environment:
+      - HOST_UID=${HOST_UID:-1000}
+      - HOST_GID=${HOST_GID:-1000}
+      - CONTAINER_USER=${CONTAINER_USER:-appuser}
+      - CONTAINER_PASSWORD=${CONTAINER_PASSWORD:-password123}
+    volumes:
+      - type: bind
+        source: .
+        target: /work
+      - type: volume
+        source: packages
+        target: /usr/local/lib/python3.12/site-packages
+      - type: bind
+        source: ${HOME}/.ssh/authorized_keys
+        target: /tmp/id_ed25519.pub
+        read_only: true
+    tty: true
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import sys; sys.exit(0)" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  packages:
+    name: stackdig-python-packages
