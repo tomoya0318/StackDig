@@ -17,6 +17,7 @@
     RUN apt-get update && \
         apt-get install -y --no-install-recommends \
         openssh-server \
+        git \
         && mkdir -p /var/run/sshd \
         && mkdir -p /root/.ssh \
         && chmod 700 /root/.ssh \
