@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 
 from dataclasses_json import DataClassJsonMixin, config, dataclass_json
 
@@ -10,16 +11,33 @@ from db.connection import get_db_connection, load_query_from_file
 @dataclass_json
 @dataclass
 class LabelVote(DataClassJsonMixin):
+    """ラベル情報を表すデータクラス"""
+
     id: int
     revision_id: str
     label_type_id: int
     author_id: int
     value: int
-    created_at: datetime = field(metadata=config(encoder=datetime.isoformat, decoder=datetime.fromisoformat))
+    created_at: datetime = field(
+        metadata=config(encoder=datetime.isoformat, decoder=datetime.fromisoformat),
+    )
 
 
 class LabelVoteRepository:
-    def __init__(self, db_path=DB_PATH, query_dir=QUERY_DIR):
+    """ラベル用データベースを操作するためのリポジトリクラス"""
+
+    def __init__(self, db_path: Path = DB_PATH, query_dir: Path = QUERY_DIR):
+        """リポジトリの初期化
+
+        Args:
+            db_path (Path, optional):
+                データベースのパス.
+                指定されていない場合はデフォルトで用意したパスを使用する.
+            query_dir (Path, optional):
+                クエリ用ディレクトリへのパス.
+                指定されていない場合はデフォルトで用意したパスを使用する.
+
+        """
         self.db_path = db_path
         self.queries_file = query_dir / "label_vote_queries.sql"
 
@@ -31,6 +49,7 @@ class LabelVoteRepository:
 
         Returns:
             int: 作成されたラベル投票のID
+
         """
         conn = get_db_connection(self.db_path)
         cursor = conn.cursor()
@@ -44,8 +63,8 @@ class LabelVoteRepository:
                 label_vote.label_type_id,
                 label_vote.author_id,
                 label_vote.value,
-                label_vote.created_at
-            )
+                label_vote.created_at,
+            ),
         )
 
         # 作成されたラベル投票のIDを取得
