@@ -4,14 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - CONTAINER_USER=${CONTAINER_USER}
+        - CONTAINER_PASSWORD=${CONTAINER_PASSWORD}
     container_name: StackDig
     ports:
       - "2223:22"
-    environment:
-      - HOST_UID=${HOST_UID:-1000}
-      - HOST_GID=${HOST_GID:-1000}
-      - CONTAINER_USER=${CONTAINER_USER:-appuser}
-      - CONTAINER_PASSWORD=${CONTAINER_PASSWORD:-password123}
+    env_file:
+      - .env
     volumes:
       - type: bind
         source: .
@@ -23,6 +23,9 @@ services:
         source: ${HOME}/.ssh/authorized_keys
         target: /tmp/id_ed25519.pub
         read_only: true
+      - type: volume
+        source: ssh_host_keys
+        target: /etc/ssh/host_keys
     tty: true
     healthcheck:
       test: [ "CMD", "python", "-c", "import sys; sys.exit(0)" ]
@@ -34,3 +37,5 @@ services:
 volumes:
   packages:
     name: stackdig-python-packages
+  ssh_host_keys:
+    name: stackdig-ssh-host-keys

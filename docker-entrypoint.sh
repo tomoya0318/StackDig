@@ -1,9 +1,20 @@
 #!/bin/bash
 set -e
 
-# 環境変数からユーザー名とパスワードを取得（デフォルト値を設定）
-USER_NAME=${CONTAINER_USER:-appuser}
-USER_PASSWORD=${CONTAINER_PASSWORD:-password123}
+# 必須環境変数のチェック
+if [ -z "$CONTAINER_USER" ]; then
+  echo "エラー: CONTAINER_USER 環境変数が設定されていません。.envファイルを確認してください。"
+  exit 1
+fi
+
+if [ -z "$CONTAINER_PASSWORD" ]; then
+  echo "エラー: CONTAINER_PASSWORD 環境変数が設定されていません。.envファイルを確認してください。"
+  exit 1
+fi
+
+# 環境変数からユーザー名とパスワードを取得
+USER_NAME=${CONTAINER_USER}
+USER_PASSWORD=${CONTAINER_PASSWORD}
 
 # ユーザーが存在するか確認し、存在しない場合は作成
 if ! id -u "${USER_NAME}" >/dev/null 2>&1; then
@@ -27,6 +38,20 @@ if ! grep -q "cd /work" "/home/${USER_NAME}/.bashrc"; then
   echo "# 自動的にプロジェクトディレクトリに移動" >> /home/${USER_NAME}/.bashrc
   echo "cd /work" >> /home/${USER_NAME}/.bashrc
 fi
+
+# SSHホスト鍵の永続化（Ed25519のみ）
+mkdir -p /etc/ssh/host_keys
+
+# 永続化された鍵があるか確認し、なければ生成して保存
+if [ ! -f "/etc/ssh/host_keys/ssh_host_ed25519_key" ]; then
+  echo "SSHホスト鍵(Ed25519)を生成しています..."
+  ssh-keygen -t ed25519 -f /etc/ssh/host_keys/ssh_host_ed25519_key -N ""
+fi
+
+# 既存のキーを削除（もし存在すれば）して、新しい永続的な鍵にリンク
+rm -f /etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key.pub
+ln -sf /etc/ssh/host_keys/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key
+ln -sf /etc/ssh/host_keys/ssh_host_ed25519_key.pub /etc/ssh/ssh_host_ed25519_key.pub
 
 # SSH鍵の設定（オプション - あなたの公開鍵があれば）
 if [ -f "/tmp/id_ed25519.pub" ]; then
