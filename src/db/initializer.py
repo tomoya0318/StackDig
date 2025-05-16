@@ -13,7 +13,7 @@ class DatabaseInitializer:
 
         try:
             # スキーマを適用
-            schema_path = self.db_dir / "schema.sql"
+            schema_path = self.db_dir / "table.sql"
             execute_sql_file(conn, schema_path)
 
             # インデックスを適用
