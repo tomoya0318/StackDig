@@ -1,0 +1,16 @@
+[tool.ruff]
+# ターゲットPythonバージョン
+target-version = "py312"
+
+# 選択するルール
+select = ["ALL"]
+
+# 無視するルール
+ignore = [
+    "ANN204",  # 特殊メソッドの戻り値型アノテーション要件を無視
+    "T201",  # print() の使用を許可
+    "D100", "D400", "D415",  # docstringの末尾がピリオド.の強制を無効化
+    "INP001",  # __init__.py の設定不要
+    "ERA001",  # コメントアウトされたコードをOK
+    "RET504",  # 直接returnしなくてもOK
+]
